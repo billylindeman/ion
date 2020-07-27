@@ -43,7 +43,7 @@ func removeStreamsByNode(nodeID string) {
 		DC:  dc,
 		NID: nodeID,
 	}.BuildKey()
-	for _, key := range redis.Keys(mkey + "*") {
+	for _, key := range redis.Scan(mkey + "*") {
 		log.Infof("streamRemove: key => %s", key)
 		minfo, err := proto.ParseMediaInfo(key)
 		if err == nil {
@@ -62,7 +62,7 @@ func WatchAllStreams() {
 		DC: dc,
 	}.BuildKey()
 	log.Infof("Watch all streams, mkey = %s", mkey)
-	for _, key := range redis.Keys(mkey) {
+	for _, key := range redis.Scan(mkey) {
 		log.Infof("Watch stream, key = %s", key)
 		watchStream(key)
 	}
@@ -99,7 +99,7 @@ func findServiceNode(data proto.FindServiceParams) (interface{}, *nprotoo.Error)
 			MID: mid,
 		}.BuildKey()
 		log.Infof("Find mids by mkey %s", mkey)
-		for _, key := range redis.Keys(mkey + "*") {
+		for _, key := range redis.Scan(mkey + "*") {
 			log.Infof("Got: key => %s", key)
 			minfo, err := proto.ParseMediaInfo(key)
 			if err != nil {
@@ -199,7 +199,7 @@ func streamRemove(data proto.StreamRemoveMsg) (map[string]interface{}, *nprotoo.
 	mkey := data.BuildKey()
 
 	log.Infof("streamRemove: key => %s", mkey)
-	for _, key := range redis.Keys(mkey + "*") {
+	for _, key := range redis.Scan(mkey + "*") {
 		log.Infof("streamRemove: key => %s", key)
 		err := redis.Del(key)
 		if err != nil {
@@ -219,7 +219,7 @@ func getPubs(data proto.RoomInfo) (proto.GetPubResp, *nprotoo.Error) {
 	log.Infof("getPubs: root key=%s", key)
 
 	var pubs []proto.PubInfo
-	for _, path := range redis.Keys(key + "*") {
+	for _, path := range redis.Scan(key + "*") {
 		log.Infof("getPubs media info path = %s", path)
 		info, err := proto.ParseMediaInfo(path)
 		if err != nil {
@@ -310,7 +310,7 @@ func getMediaInfo(data proto.MediaInfo) (interface{}, *nprotoo.Error) {
 	mkey := data.BuildKey()
 	log.Infof("getMediaInfo key=%s", mkey)
 
-	if keys := redis.Keys(mkey + "*"); len(keys) > 0 {
+	if keys := redis.Scan(mkey + "*"); len(keys) > 0 {
 		key := keys[0]
 		log.Infof("Got: key => %s", key)
 		fields := redis.HGetAll(key)

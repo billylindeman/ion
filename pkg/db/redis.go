@@ -11,6 +11,8 @@ import (
 	"github.com/go-redis/redis/v7"
 )
 
+const SCAN_PAGE_SIZE = 200
+
 type Config struct {
 	Addrs []string
 	Pwd   string
@@ -145,13 +147,37 @@ func (r *Redis) HSetTTL(k, field string, value interface{}, t time.Duration) err
 	return r.single.Expire(k, t).Err()
 }
 
-func (r *Redis) Keys(k string) []string {
+func (r *Redis) Scan(k string) []string {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	if r.clusterMode {
-		return r.cluster.Keys(k).Val()
+
+		cursor := uint64(0)
+		results := []string{}
+		for {
+			keys, cursor := r.cluster.Scan(cursor, k, SCAN_PAGE_SIZE).Val()
+			results = append(results, keys...)
+
+			if cursor == 0 {
+				break
+			}
+		}
+
+		return results
 	}
-	return r.single.Keys(k).Val()
+
+	cursor := uint64(0)
+	results := []string{}
+	for {
+		keys, cursor := r.single.Scan(cursor, k, SCAN_PAGE_SIZE).Val()
+		results = append(results, keys...)
+
+		if cursor == 0 {
+			break
+		}
+	}
+
+	return results
 }
 
 func (r *Redis) Del(k string) error {
