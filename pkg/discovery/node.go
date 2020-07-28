@@ -53,6 +53,9 @@ func (sn *ServiceNode) GetRPCChannel() string {
 // RegisterNode register a new node.
 func (sn *ServiceNode) RegisterNode(serviceName string, name string, ID string) {
 	sn.node.ID = randomString(12)
+	if ID != "" {
+		sn.node.ID = ID
+	}
 	sn.node.Info["name"] = name
 	sn.node.Info["service"] = serviceName
 	sn.node.Info["id"] = serviceName + "-" + sn.node.ID

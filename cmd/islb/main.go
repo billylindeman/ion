@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	_ "net/http/pprof"
+	"os"
 
 	conf "github.com/pion/ion/pkg/conf/islb"
 	"github.com/pion/ion/pkg/db"
@@ -29,7 +30,8 @@ func main() {
 	}
 
 	serviceNode := discovery.NewServiceNode(conf.Etcd.Addrs, conf.Global.Dc)
-	serviceNode.RegisterNode("islb", "node-islb", "islb-channel-id")
+	serviceNodeID := os.Getenv("SERVICE_NODE_ID")
+	serviceNode.RegisterNode("islb", "node-islb", serviceNodeID)
 
 	redisCfg := db.Config{
 		Addrs: conf.Redis.Addrs,

@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	_ "net/http/pprof"
+	"os"
 
 	conf "github.com/pion/ion/pkg/conf/sfu"
 	"github.com/pion/ion/pkg/discovery"
@@ -78,7 +79,8 @@ func main() {
 	}
 
 	serviceNode := discovery.NewServiceNode(conf.Etcd.Addrs, conf.Global.Dc)
-	serviceNode.RegisterNode("sfu", "node-sfu", "sfu-channel-id")
+	serviceNodeID := os.Getenv("SERVICE_NODE_ID")
+	serviceNode.RegisterNode("sfu", "node-sfu", serviceNodeID)
 
 	rpcID := serviceNode.GetRPCChannel()
 	eventID := serviceNode.GetEventChannel()
